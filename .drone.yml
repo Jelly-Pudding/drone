@@ -1,0 +1,16 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: test
+  image: alpine
+  commands:
+  - echo hello
+  - echo world
+
+trigger:
+  branch:
+  - main
+  event:
+  - push
