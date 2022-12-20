@@ -18,5 +18,5 @@ docker run --detach \
   drone/drone-runner-docker:1
 ```
 The `DRONE_RPC_HOST` must point to your ngrok URL and it must not have the `https://` at the start. The `DRONE_RPC_SECRET` is the one created from the `openssl rand -hex 16` command. This must match the secret defined in your Drone server configuration.
-> 3. Use the `docker logs container-id-here` command to view the logs and to confirm that the runner established a connection with your Drone server. The below image acts as an example of what should appear if there is a successful connection:
+> 3. Use the `docker logs container-id-here` command to view the logs and confirm that the runner established a connection with your Drone server. The below image acts as an example of what should appear if there is a successful connection:
 ![image](./pictures/runner.png)
