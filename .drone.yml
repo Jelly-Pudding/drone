@@ -5,6 +5,8 @@ name: default
 steps:
 - name: test
   image: python:3.12.0a3-alpine3.17
+  environment:
+    TESTY: test-environment-variable
   commands:
   - echo hello
   - echo world
