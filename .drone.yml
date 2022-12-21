@@ -4,7 +4,7 @@ name: default
 
 steps:
 - name: test
-  image: alpine
+  image: python:3.12.0a3-alpine3.17
   commands:
   - echo hello
   - echo world
