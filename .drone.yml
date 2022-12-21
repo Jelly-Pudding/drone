@@ -8,6 +8,8 @@ steps:
   commands:
   - echo hello
   - echo world
+  - echo "$PWD"
+  - echo "$HOSTNAME"
 
 trigger:
   branch:
