@@ -17,6 +17,8 @@ steps:
   image: python:3.12.0a3-alpine3.17
   environment:
     TESTY: test-environment-variable
+    VARIABLE-FROM-MY-SECRET:
+      from_secret: my-secret-test
   commands:
   - echo hello
   - echo world
