@@ -2,8 +2,18 @@ kind: pipeline
 type: docker
 name: default
 
+# If the platform is unspecified, it defaults to Linux amd64 anyway
+platform:
+  os: linux
+  arch: amd64
+
+# The default is /drone/src
+workspace:
+  path: /drone/my-workspace
+
 steps:
-- name: test
+- name: test-step
+  pull: if-not-exists
   image: python:3.12.0a3-alpine3.17
   environment:
     TESTY: test-environment-variable
@@ -14,9 +24,8 @@ steps:
   - echo "$HOSTNAME"
   - echo $(ls)
   - python python-file.py
-
-trigger:
-  branch:
-  - main
-  event:
-  - push
+  when:
+    branch:
+    - main
+    event:
+    - push
