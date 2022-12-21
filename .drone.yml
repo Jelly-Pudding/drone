@@ -1,5 +1,5 @@
 kind: pipeline
-type: kubernetes
+type: docker
 name: test-docker
 
 # If the platform is unspecified, it defaults to Linux amd64 anyway
