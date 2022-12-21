@@ -18,7 +18,7 @@ steps:
   environment:
     TESTY: test-environment-variable
     VARIABLE-FROM-MY-SECRET:
-      from_secret: my_secret_test
+      from_secret: my-secret-test
   commands:
   - echo hello
   - echo world
