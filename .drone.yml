@@ -11,6 +11,7 @@ steps:
   - echo "$PWD"
   - echo "$HOSTNAME"
   - echo $(ls)
+  - python python-file.py
 
 trigger:
   branch:
