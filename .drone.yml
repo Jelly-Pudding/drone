@@ -24,6 +24,7 @@ steps:
   - echo world
   - echo "$PWD"
   - echo "$HOSTNAME"
+  - echo "$VARIABLE-FROM-MY-SECRET"
   - echo $(ls)
   - python python-file.py
   when:
