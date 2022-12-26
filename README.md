@@ -1,8 +1,16 @@
 # Drone Overview
 
-Drone is a modern Continuous Integration platform that allows teams to automate their build, test and release workflows. It is built on Docker and written in Go. It more specifically consists of a `Server` and one or many `Runners`. `Runners` are standalone daemons that poll the server for pending pipelines to execute.
+Drone is an open-source continuous integration (CI) and delivery (CD) platform. It is designed to be lightweight and easy to use, with a simple configuration file and a powerful API.
 
-This repository outlines the process for setting up both the Drone `Server` and a Drone `Runner`. Click the links below to navigate to the desired section: 
+With Drone, you can automate the build, test, and deployment of your software projects. It integrates with a wide range of tools and services, including version control systems like Git, container registry platforms like Docker Hub, and deployment tools like Kubernetes.
+
+Using Drone, you can define build pipelines in a configuration file, and Drone will automatically run the defined steps in the pipeline whenever code is pushed to the repository. This allows you to automate your build, test, and deployment process, freeing up time and resources to focus on other tasks.
+
+Drone is highly flexible and can be used for a variety of software projects, including web applications, mobile apps, and infrastructure as code. It is popular among developers and DevOps teams because of its simplicity, ease of use, and extensibility.
+
+Drone specifically consists of a `Server` and one or many `Runners`. `Runners` are standalone daemons that poll the server for pending pipelines to execute.
+
+This repository outlines the process for setting up both the Drone `Server` and a Drone `Runner` for Docker and Kubernetes. Click the links below to navigate to the desired section: 
 
 * [Drone Server Installation](#drone-server-installation)
 * [Install a Runner](#install-a-docker-runner-on-linux)
@@ -94,4 +102,78 @@ Note: The ephemeral Docker container which spins up when you run the pipeline wi
 
 However, in the console logs for the build, only asterisks (`******`) will appear if you try to print out this environment variable.
 
+# Kubernetes Installation
+
+This cluster will consist of two nodes. One node will be the master node, and the other one the agent node. 
+
+## Commands to run on both nodes.
+
+### Login as root user and disable swap
+* Login as root user with `sudo su -`.
+* Disable swap: `swapoff -a; sed -i '/swap/d' /etc/fstab`. 
+
+### Update sysctl settings for Kubernetes networking
+These commands allow IPtables to see bridged traffic.
+
+```bash
+cat >>/etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+sysctl --system
+```
+
+### Install Docker
+
+```bash
+apt update & sudo apt-upgrade -y
+apt install docker.io
+```
+
+### Kubernetes Setup
+
+Make sure these are all the same versions.
+
+```
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+apt update && sudo apt install -y kubeadm=1.25.4-00 kubelet=1.25.4-00 kubectl=1.25.4-00
+```
+
+## On Your Master Node Only
+
+### Initialise Kubernetes Cluster
+
+Run this command, making sure the network cidr is 10.244.0.0/16 (for flannel). Also note the ip address corresponds to the one found in the Vagrantfile: `kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.50.4 --ignore-preflight-errors=all`. 
+
+After it has initialised, run `export KUBECONFIG=/etc/kubernetes/admin.conf`. 
+
+### Deploy Flannel 
+
+This will not work if you did not enter 10.244.0.0/16 as the network cidr address for the kubeadm init command.
+
+Run `kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/v0.20.2/Documentation/kube-flannel.yml`. 
+
+### Cluster Join Command 
+
+Note down the output generated from this command for later use: `kubeadm token create --print-join-command`.
+
+### Run the kubeadm join command on your agent nodes
+
+This command can be found at the bottom of the output on the master node when you run the command `kubeadm token create --print-join-command`.
+
+Run `kubectl get pods` in your agent nodes, and you should see an error. We will deal with this blocker.
+
+### Dealing with the 8080 blocker
+
+In your master node, go to `cd /etc/kubernetes/`. Copy admin.conf with `cat admin.conf`.
+
+In your agent node, type `mkdir -p $HOME/.kube`.
+
+Navigate to `cd ~/.kube` in your agent node.
+
+In your agent node, type in `sudo nano config`, and paste all of the contents from admin.conf (which you should have copied from the master node admin.conf file).
+
+Run `kubectl get nodes`, and you will see all of the nodes in the cluster.
 
