@@ -4,7 +4,7 @@ Drone is an open-source continuous integration (CI) and delivery (CD) platform. 
 
 With Drone, you can automate the build, test, and deployment of your software projects. It integrates with a wide range of tools and services, including version control systems like Git, container registry platforms like Docker Hub, and deployment tools like Kubernetes.
 
-Using Drone, you can define build pipelines in a configuration file, and Drone will automatically run the defined steps in the pipeline whenever code is pushed to the repository. This allows you to automate your build, test, and deployment processes, freeing up time and resources to focus on other tasks.
+Using Drone, you can define build pipelines in a configuration file, and Drone will automatically run the defined steps in the pipeline whenever code is pushed to the repository. This allows you to automate your build, test, and deployment processes, freeing up your time and resources so you can focus on other tasks.
 
 Drone is highly flexible and can be used for a variety of software projects, including web applications, mobile apps, and infrastructure as code. It is popular among developers and DevOps teams because of its simplicity, ease of use, and extensibility.
 
