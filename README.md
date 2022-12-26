@@ -159,13 +159,15 @@ Run `kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/v0.20
 
 Note down the output generated from this command for later use: `kubeadm token create --print-join-command`.
 
+## On your Agent Node Only
+
 ### Run the kubeadm join command on your agent nodes
 
 This command can be found at the bottom of the output on the master node when you run the command `kubeadm token create --print-join-command`.
 
-Run `kubectl get pods` in your agent nodes, and you should see an error. We will deal with this blocker.
+Run `kubectl get pods` in your agent node, and you should see an error. We will deal with this blocker.
 
-### Dealing with the 8080 blocker
+## Dealing with the 8080 blocker
 
 In your master node, go to `cd /etc/kubernetes/`. Copy admin.conf with `cat admin.conf`.
 
