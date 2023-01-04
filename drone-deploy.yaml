@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drone-server
+  labels:
+    app: drone-server
+  annotations:
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: drone-server
+    spec:
+      containers:
+      - name: drone-server
+        image: drone/drone:2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        env:
+          - name: "DRONE_GITHUB_CLIENT_ID"
+            value: CHANGE_ME
+          - name: "DRONE_GITHUB_CLIENT_SECRET"
+            value: CHANGE_ME
+          - name: "DRONE_RPC_SECRET"
+            value: CHANGE_ME
+          - name: "DRONE_SERVER_HOST"
+            value: CHANGE_ME
+          - name: "DRONE_SERVER_PROTO"
+            value:CHANGE_ME

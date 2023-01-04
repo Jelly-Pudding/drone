@@ -4,21 +4,19 @@ Drone is an open-source continuous integration (CI) and delivery (CD) platform. 
 
 With Drone, you can automate the build, test, and deployment of your software projects. It integrates with a wide range of tools and services, including version control systems like Git, container registry platforms like Docker Hub, and deployment tools like Kubernetes.
 
-Using Drone, you can define build pipelines in a configuration file, and Drone will automatically run the defined steps in the pipeline whenever code is pushed to the repository. This allows you to automate your build, test, and deployment processes, freeing up your time and resources so you can focus on other tasks.
-
-Drone is highly flexible and can be used for a variety of software projects, including web applications, mobile apps, and infrastructure as code. It is popular among developers and DevOps teams because of its simplicity, ease of use, and extensibility.
+Using Drone, you can define build pipelines in a configuration file, and Drone will automatically run the defined steps in the pipeline if a certain trigger gets fired. For example, the pipeline could get executed when code gets pushed to the dev branch of a repository. 
 
 Drone specifically consists of a `Server` and one or many `Runners`. `Runners` are standalone daemons that poll the server for pending pipelines to execute.
 
 This repository outlines the process for setting up both the Drone `Server` and a Drone `Runner` for Docker and Kubernetes. Click the links below to navigate to the desired section: 
 
-* [Drone Server Installation](#drone-server-installation)
-* [Install a Runner](#install-a-docker-runner-on-linux)
+* [Ngrok Installation](#ngrok-installation)
+* [Drone Server Installation for Docker](#drone-server-installation-for-docker)
+* [Install a Runner for a Docker Drone Server](#install-a-runner-for-a-docker-drone-server)
+* [Drone Server Installation for Kubernetes](#drone-server-installation-for-kubernetes)
 * [Managing Drone Secrets](#secrets-per-repository)
 
-# Drone Server Installation
-
-## Ngrok Installation
+# Ngrok Installation
 Your Drone server will need to be publicly accessible. In this example, `ngrok` will be used. Download instructions for Linux can be found [here](https://ngrok.com/download). You can also follow the below steps:
 
 > 1. Run `wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz`.
@@ -30,7 +28,7 @@ Your Drone server will need to be publicly accessible. In this example, `ngrok` 
 ![image](./pictures/ngrok.png)
 
 
-## Drone Installation for GitHub
+# Drone Server Installation for Docker
 You can follow the instructions on [Drone's official documentation page](https://docs.drone.io/server/provider/github/) for installing a Drone server for GitHub. Alternatively, you can follow the steps below:
 
 > 1. [Create a GitHub OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app). You can name the application `Drone`, and for the `Homepage URL` and the `Authorization callback URL`, put in the publicly accessible ngrok URL followed by `/login` at the end.
@@ -102,6 +100,8 @@ Note: The ephemeral Docker container which spins up when you run the pipeline wi
 
 However, in the console logs for the build, only asterisks (`******`) will appear if you try to print out this environment variable.
 
+# Drone Server Installation for Kubernetes
+
 # Kubernetes Installation
 
 This cluster will consist of two nodes. One node will be the master node, and the other one the agent node. 
@@ -127,8 +127,8 @@ sysctl --system
 ### Install Docker
 
 ```bash
-apt update & sudo apt-upgrade -y
-apt install docker.io
+apt update & apt upgrade -y
+apt install docker.io -y
 ```
 
 ### Kubernetes Setup
@@ -165,17 +165,14 @@ Note down the output generated from this command for later use: `kubeadm token c
 
 This command can be found at the bottom of the output on the master node when you run the command `kubeadm token create --print-join-command`.
 
-Run `kubectl get pods` in your agent node, and you should see an error. We will deal with this blocker.
+## On your Master Node Only
 
-## Dealing with the 8080 blocker
+Run `kubectl get nodes`, and you will see all of the nodes in the cluster. It may take a minute for the agent node to have a `Ready` status.
 
-In your master node, go to `cd /etc/kubernetes/`. Copy admin.conf with `cat admin.conf`.
+When the nodes are all ready, run `kubectl apply -f app.yaml` in your master node (and make sure you are in the `/vagrant` directory). You will be able to view your app on your agent node's ip with the port 30000.
 
-In your agent node, type `mkdir -p $HOME/.kube`.
+## Making the App Publicly Accessible
 
-Navigate to `cd ~/.kube` in your agent node.
+To make your app publicly accessible, you will need to set up [Ngrok](#ngrok-installation) on either your master or agent node. You will need to run a command that looks like this: `ngrok http agent-nodeip:30000`. In this case, given the `Vagrantfile`'s configuration, this will be the exact command: `ngrok http 192.168.50.5:30000`. People can then access your app using ngrok's publicly accessible URL.
 
-In your agent node, type in `sudo nano config`, and paste all of the contents from admin.conf (which you should have copied from the master node admin.conf file).
-
-Run `kubectl get nodes`, and you will see all of the nodes in the cluster.
 
