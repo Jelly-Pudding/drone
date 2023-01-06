@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: drone-server
-  labels:
-    app: drone-server
-  annotations:
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: drone-server
   template:
     metadata:
       labels:
@@ -18,14 +18,28 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
+        - containerPort: 443
         env:
           - name: "DRONE_GITHUB_CLIENT_ID"
-            value: CHANGE_ME
+            value: value-here
           - name: "DRONE_GITHUB_CLIENT_SECRET"
-            value: CHANGE_ME
+            value: value-here
           - name: "DRONE_RPC_SECRET"
-            value: CHANGE_ME
+            value: value-here
           - name: "DRONE_SERVER_HOST"
-            value: CHANGE_ME
+            value: https://23a9-2-121-35-82.eu.ngrok.io
           - name: "DRONE_SERVER_PROTO"
-            value:CHANGE_ME
+            value: https
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drone-server-service
+spec:
+  type: NodePort
+  selector:
+    app: drone-server
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30000

@@ -31,7 +31,7 @@ Your Drone server will need to be publicly accessible. In this example, `ngrok` 
 # Drone Server Installation for Docker
 You can follow the instructions on [Drone's official documentation page](https://docs.drone.io/server/provider/github/) for installing a Drone server for GitHub. Alternatively, you can follow the steps below:
 
-> 1. [Create a GitHub OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app). You can name the application `Drone`, and for the `Homepage URL` and the `Authorization callback URL`, put in the publicly accessible ngrok URL followed by `/login` at the end.
+> 1. [Create a GitHub OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app). You can name the application `Drone`, and for the `Homepage URL` put in the publicly accessible ngrok URL. For `Authorization callback URL`, put in the publicly accessible ngrok URL followed by `/login` at the end.
 > 2. Make a note of the `Client ID` and especially the `Client Secret` which you won't be able to see again. 
 > 3. In addition to these secrets, create a shared secret by typing this command into the terminal: `openssl rand -hex 16`. Also make a note of this secret.
 > 4. Install Docker. Remember you might need to run an update and an upgrade first.
@@ -55,7 +55,7 @@ docker run \
 The `DRONE_RPC_SECRET` is the secret created by running the command `openssl rand -hex 16`. The server host is the publicly accessible ngrok URL.
 > 6. You will be able to access the Drone server by typing the ngrok URL into your browser. 
 
-# Install a Docker runner on Linux
+# Install a Docker Runner on Linux
 
 Official documentation for installing the Docker runner on Linux can be found [here](https://docs.drone.io/runner/docker/installation/linux/).
 
@@ -171,8 +171,62 @@ Run `kubectl get nodes`, and you will see all of the nodes in the cluster. It ma
 
 When the nodes are all ready, run `kubectl apply -f app.yaml` in your master node (and make sure you are in the `/vagrant` directory). You will be able to view your app on your agent node's ip with the port 30000.
 
-## Making the App Publicly Accessible
+## Deploying the Drone Server
 
-To make your app publicly accessible, you will need to set up [Ngrok](#ngrok-installation) on either your master or agent node. You will need to run a command that looks like this: `ngrok http agent-nodeip:30000`. In this case, given the `Vagrantfile`'s configuration, this will be the exact command: `ngrok http 192.168.50.5:30000`. People can then access your app using ngrok's publicly accessible URL.
+First off all, to make your app publicly accessible, you will need to set up [Ngrok](#ngrok-installation). When this is done, run `ngrok http 192.168.50.5:30000` on your master node.
 
+Replace the environment variable values found in `drone-deploy.yaml` by following these instructions:
+
+> 1. [Create a GitHub OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app). You can name the application `Drone`, and for the `Homepage URL` put in the publicly accessible ngrok URL. For `Authorization callback URL`, put in the publicly accessible ngrok URL followed by `/login` at the end.
+> 2. Make a note of the `Client ID` and especially the `Client Secret` which you won't be able to see again. 
+> 3. In addition to these secrets, create a shared secret by typing this command into the terminal: `openssl rand -hex 16`.
+
+Plug these values into the yaml file, and then run `kubectl apply -f drone-deploy.yaml` on your master node. You will be able to access the Drone server by typing the ngrok URL into your browser.
+
+### Potential Blockers
+
+#### Blocker: Can't run kubectl get pods or kubectl exec
+
+Run `kubectl get pods` and try these commands:
+
+`kubectl exec -it pod-name-here -- sh`
+`kubectl logs pod-name-here`
+
+If you receive error such as these ones:
+
+`error: unable to upgrade connection: pod does not exist`
+`error from server (NotFound): the server could not find the requested resource (pods/log pod-name-here)`
+
+Then check the output from `kubectl get nodes -o wide`. If your `INTERNAL-IP` values for the nodes is not correct (in this case if they do not match the IPs in the Vagrant file - namely `192.168.50.4` and `192.168.50.5`) then follow these steps in your master node:
+
+> 1. Run `sudo nano /etc/systemd/system/kubelet.service.d/10-kubeadm.conf`.
+> 2. Add this line if `KUBELET_EXTRA_ARGS` does not exist: `Environment="KUBELET_EXTRA_ARGS=--node-ip=192.168.50.4"`. If it does exist, simply add the --node flag at the end of the line. Note the IP here corresponds to the master node's IP.
+> 3. Run `systemctl daemon-reload` and `sudo systemctl restart kubelet`. 
+
+Repeat steps 1-3 for your agent node, replacing the IP with `192.168.50.5`. Then in your master node run `kubectl get nodes -o wide` and the `INTERNAL-IP` values should soon update with the correct values.
+
+#### Drone Post Timeout
+
+If you receive an error like this when you click `continue` when accessing the Drone server's ngrok URL for the first time:
+
+`drone Post "https://github.com/login/oauth/access_token": dial tcp timeout`
+
+Then it means the container in your pod cannot connect to GitHub, and most likely that it cannot connect to the internet.
+
+To fix this, execute into your container in your pod with this command: `kubectl exec -it pod-name -- sh`. Then cd into `/etc/` and type `vi resolv.conf`. Add this line `nameserver 8.8.8.8`. Then type `exit` to exit the container. If necessary redeploy the container again. 
+
+# Install a Kubernetes Runner
+
+Replace the values in `drone-runner.yaml`. The `DRONE_RPC_HOST` must point to your ngrok URL and it must not have the `https://` at the start. The `DRONE_RPC_SECRET` is the one created from the `openssl rand -hex 16` command. This must match the secret defined in your `drone-deploy.yaml` file.
+
+When the values are replaced, run `kubectl apply -f drone-runner.yaml`. Use the `kubectl logs pod-name-here` command to view the logs. Confirm whether the runner established a connection with your Drone server. The below image acts as an example of what should appear if there is a successful connection (the initial messages were due to a blocker which will be discussed below):
+![image](./pictures/kubernetes-runner.png)
+
+## Blocker when Installing the Kubernetes Runner
+
+If you deploy the yaml file and ig has an error which ends with this message:
+
+`dial tcp: i/o timeout`
+
+Then execute into your container in your pod with this command: `kubectl exec -it pod-name -- sh`. Then cd into `/etc/` and type `vi resolv.conf`. Add this line `nameserver 8.8.8.8`. Then type `exit` to exit the container. If necessary redeploy the container again.
 

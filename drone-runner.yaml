@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drone-runner
+  labels:
+    app: drone-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drone
+  template:
+    metadata:
+      labels:
+        app: drone
+    spec:
+      containers:
+      - name: runner
+        image: drone/drone-runner-kube:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: "DRONE_RPC_PROTO"
+          value: https
+        - name: "DRONE_RPC_HOST"
+          value: 23a9-2-121-35-82.eu.ngrok.io
+        - name: "DRONE_RPC_SECRET"
+          value: value-here
+        - name: "DRONE_RUNNER_NAME"
+          value: my-first-runner
