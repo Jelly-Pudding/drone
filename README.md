@@ -222,11 +222,19 @@ Replace the values in `drone-runner.yaml`. The `DRONE_RPC_HOST` must point to yo
 When the values are replaced, run `kubectl apply -f drone-runner.yaml`. Use the `kubectl logs pod-name-here` command to view the logs. Confirm whether the runner established a connection with your Drone server. The below image acts as an example of what should appear if there is a successful connection (the initial messages were due to a blocker which will be discussed below):
 ![image](./pictures/kubernetes-runner.png)
 
+Finally, run this command so the user "system:serviceaccount:default:default" can create "secrets". 
+
+`kubectl create clusterrolebinding serviceaccounts-cluster-admin --clusterrole=cluster-admin --group=system:serviceaccounts`.
+
+**WARNING: This allows any user with read access to get secrets and gives them ability to create a pod to access super-user credentials. This is only used here as this repository is purely for learning Drone.**
+
 ## Blocker when Installing the Kubernetes Runner
 
-If you deploy the yaml file and ig has an error which ends with this message:
+If you deploy the yaml file and the logs have an error which ends with this message:
 
 `dial tcp: i/o timeout`
 
 Then execute into your container in your pod with this command: `kubectl exec -it pod-name -- sh`. Then cd into `/etc/` and type `vi resolv.conf`. Add this line `nameserver 8.8.8.8`. Then type `exit` to exit the container. It should not be able to connect to the internet. If necessary redeploy the container again.
+
+
 
