@@ -228,5 +228,5 @@ If you deploy the yaml file and ig has an error which ends with this message:
 
 `dial tcp: i/o timeout`
 
-Then execute into your container in your pod with this command: `kubectl exec -it pod-name -- sh`. Then cd into `/etc/` and type `vi resolv.conf`. Add this line `nameserver 8.8.8.8`. Then type `exit` to exit the container. If necessary redeploy the container again.
+Then execute into your container in your pod with this command: `kubectl exec -it pod-name -- sh`. Then cd into `/etc/` and type `vi resolv.conf`. Add this line `nameserver 8.8.8.8`. Then type `exit` to exit the container. It should not be able to connect to the internet. If necessary redeploy the container again.
 
